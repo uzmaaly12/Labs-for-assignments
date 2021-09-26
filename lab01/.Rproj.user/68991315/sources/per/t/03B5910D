@@ -1,27 +1,27 @@
 {
-    "id": "DE7C180C",
-    "path": "E:/GEOGRAPHY UNL/Courses/Spatial analysis/UNL_GEOG_491_891-main/lab01/lab1.R",
+    "id": "03B5910D",
+    "path": "~/GitHub/Labs-for-assignments/lab01/lab1.R",
     "project_path": "lab1.R",
     "type": "r_source",
-    "hash": "3509024142",
+    "hash": "3159033637",
     "contents": "",
     "dirty": false,
-    "created": 1632104638358.0,
+    "created": 1632495598138.0,
     "source_on_save": false,
-    "relative_order": 1,
+    "relative_order": 6,
     "properties": {
         "tempName": "Untitled1",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "16,67",
-        "scrollLine": "0"
+        "cursorPosition": "53,0",
+        "scrollLine": "34"
     },
     "folds": "",
-    "lastKnownWriteTime": 1632459188,
+    "lastKnownWriteTime": 1632675564,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1632459188270,
+    "last_content_update": 1632675564532,
     "read_only": false,
     "read_only_alternatives": []
 }
