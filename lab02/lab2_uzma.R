@@ -1,3 +1,6 @@
+#assignment-Lab02
+#Uzma
+
 library(tidyverse)
 library(sf)
 library(tmap)
