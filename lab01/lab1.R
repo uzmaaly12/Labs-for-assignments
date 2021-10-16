@@ -44,7 +44,7 @@ d.stations %>% ggplot(., aes(x = Drainage_A)) + geom_histogram(aes(fill = MAP_ID
 
 #2.3 Make a similar histogram, this time of drainage area (Drainage_A) for all monitoring stations. Color each point using the state variable
 
-ggplot(d.stations,aes(x=Drainage_A,fill= MAP_ID,color= "purple"))+geom_histogram() + labs(title = "Relationship between land area and water area")
+ggplot(d.stations,aes(x=Drainage_A,fill= MAJOR_WATE))+geom_histogram() + labs(title = "Relationship between land area and water area")
 
 #Task 3: Write a function
 
@@ -122,9 +122,16 @@ Max_DA
 
 #Q1.In using the intersection functions, are the following two statements equivalent? If not, explain how.
 #Be sure to think about BOTH the spatial data structures AND the attribute data. Would your answer be different if we were using different types of data?
-sf::st_intersection(d.stations, del.counties)
-sf::st_intersection(del.counties, d.stations)
-#ANSWER yes
+
+d.counties %>% sf::st_crs() == d.stations %>% sf::st_crs()
+del.counties <- d.counties %>% dplyr::filter(STATEFP10 == 10)
+del.stations <- sf::st_intersection(d.stations, del.counties)
+
+sf::st_intersection(d.stations, del.counties) == sf::st_intersection(del.counties, d.stations)
+?st_crs()
+#ANSWER 
+#The coordinate reference system are same but the features are different in both table. My answer would be the same because different types of data would have again same CRS and
+#different attribute data. 
 
 #2.What did you find challenging in this lab? What was new?
 #ANSWER.The overall lab was a challenging for me but the Tasks 2 and 4 were more challenging.  
