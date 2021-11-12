@@ -1,5 +1,6 @@
 library(tidyverse)
 library(sf)
+library(sp)
 library(raster)
 library(dplyr)
 library(spData)
@@ -8,6 +9,7 @@ library(tmap)    # for static and interactive maps
 library(leaflet) # for interactive maps
 library(ggplot2) # tidyverse data visualization package
 library(GISTools)
+library(grid)
 
 countyboundries <- sf::read_sf("../data/County_Boundaries-_Census.shp")%>% sf::st_make_valid() 
 NE.counties <- read.csv(file = '../data/ne_counties.csv')
@@ -21,24 +23,25 @@ Dem <- raster("../data/lc_dem.tif")
 
 #State data frame:
 
-FemalePop.NE <-  NE.counties %>% mutate(FemalePop = (Female/Total)*100)
-join_tbl <- merge(countyboundries, FemalePop.NE, by.x= "NAME10", by.y = "NAME10" ) 
-NE.map <- tm_shape(join_tbl) + tm_fill(col = "FemalePop", alpha = 0.9, style="quantile") +
-  tm_borders(col = "brown", lwd = 1.5, lty = "solid")+ tm_scale_bar(breaks = c(0, 50,100), text.size = 0.5, position = c("right", "top"),bg.color = "grey" )
-NE.map 
+NE.map <- tm_shape(countyboundries) + tm_fill(col = "ALAND10", alpha = 0.8, style="jenks", legend.show = F) + 
+  tm_borders(col = "lightgreen", lwd = 1.5, lty = "solid")+
+  tm_scale_bar(breaks = c(0, 50,100), text.size = 0.9, position = c("right","top") )
+NE.map
 
 #County data frame:
 
-M.Lancaster <- st_intersection(MuncData,CountyData)
-Stream.Lan <- st_intersection(StreamData,CountyData)
+M.Lancaster <- st_intersection(MuncData,CountyData) #intersect municipal data with county data to get Lancaster county data
+Stream.Lan <- st_intersection(StreamData,CountyData) # intersect stream data with county data to get stream data for Lancaster county
+
+#making map for the Lancaster county
 
 Lancaster.map <- tm_shape(M.Lancaster)+
-  tm_fill("NAME",legend.show = FALSE, alpha = 0.7)+
+  tm_fill("NAME",legend.show = FALSE, alpha = 0.8)+
   tm_text("NAME")+ 
   tm_shape(Stream.Lan)+
-  tm_lines("Impairment",legend.col.show=FALSE)+
+  tm_lines(col = "blue",lwd = 1,lty = "solid",legend.col.show=FALSE)+
   tm_shape(StatePark)+
-  tm_symbols(shape = 8,col = "black")+
+  tm_symbols(shape = 22,col = "olivedrab3")+
   tm_layout(legend.position =c("right","center"))
 Lancaster.map
 
@@ -46,11 +49,13 @@ Lancaster.map
 
 tm_shape(countyboundries) + tm_fill() + tm_borders()
 Lancaster <- countyboundries[countyboundries$NAMELSAD10 == "Lancaster County",]
-Lancaster 
 
 tm_shape(StreamData) + tm_lines()
 tm_shape(StatePark) + tm_dots()
 tm_shape(MuncData) + tm_polygons()
+
+tm_shape(Dem) + tm_raster(alpha=0.7)
+tm_shape(Dem) + tm_raster()
 
 Lancaster.region = st_bbox(c(xmin = -96.91394, xmax = -96.46363,
                              ymin = 40.52302, ymax = 41.04612),
@@ -72,29 +77,45 @@ raster::crs(Dem) <- crs(Lancaster)
 # plot(Dem)
 
 lc.map <- tm_shape(Dem) + 
-  tm_raster(alpha = 0.7, palette = colorRampPalette(c("darkolivegreen4","yellow", "brown"))(12),
-  legend.show = F) + tm_compass(type = "8star", position = c("right", "top"), size = 2) +
-  tm_layout(main.title="Map of Lancaster County", title.size = 1.1)
+  tm_raster(alpha = 0.6, palette = colorRampPalette(c("darkolivegreen4","yellow", "brown"))(12),
+            legend.show = F) + tm_compass(type = "8star", position = c("right", "top"), size = 2) +
+  tm_layout(main.title="  Map of Lancaster County", title.size = 1.1)
 
 lc.map
 
-library(grid)
+#adding Lancaster county map and DEM map
 lc.map + Lancaster.map
-print(NE.map + Inset.map, vp = viewport(0.85, 0.137, width = 0.3, height = 0.3))
+print(NE.map + Inset.map, vp = viewport(0.7, 0.137, width = 0.3, height = 0.3))
 
 #Task 2...........................................Static Map
+
+#map of Gilgit Baltistan, Pakistan
 
 GB.Dem <- raster("../data/Gb_dem.tif")
 Gb_boundry <- sf::read_sf("../data/Gilgit_new_distric_boundry.shp")%>% sf::st_make_valid() 
 River.GB <- sf::read_sf("../data/waterways.shp")%>% sf::st_make_valid() 
 
-GB.Dem <- aggregate(GB.Dem, fact =2)
-GB.Dem
+#intersect GB boundary data with the river data
+Gb.rivers <- sf::st_intersection(Gb_boundry, River.GB)
+Gb.rivers
 
-map_gb = tm_shape(Gb_boundry) + tm_polygons()
-map_gb
+#creating map for GB region 
+Gb.map <- tm_shape(Gb_boundry)+
+  tm_fill("DISTRICT",legend.show = FALSE, alpha = 0.9, lwd = 1.7)+ 
+  tm_shape(Gb_boundry) + tm_borders(col = "black", lwd = 1.5, lty = "solid")+
+  tm_text("DISTRICT")+ 
+  tm_shape(Gb.rivers) +
+  tm_lines(col = "blue",lwd = 1.8,lty = "solid",legend.col.show=TRUE)+
+  tm_layout(legend.position =c("right","center"))
+Gb.map
 
-map_gb1 = map_gb + tm_shape(GB.Dem) + tm_raster(alpha = 0.7)
-map_gb1
+#plotting the DEM for the GB region
+glt.map <- tm_shape(GB.Dem) + 
+  tm_raster(alpha = 0.28, palette = colorRampPalette(c("darkolivegreen4","yellow", "brown"))(12),
+            legend.show = F) + tm_compass(type = "8star", position = c("right", "top"), size = 2) +
+  tm_layout(main.title="  Rivers in Gilgit Baltistan, Pakistan", title.size = 1.1) 
+glt.map
 
+#Adding vector and raster data (GB boundary map and DEM map)
+Gb.map + glt.map
 
