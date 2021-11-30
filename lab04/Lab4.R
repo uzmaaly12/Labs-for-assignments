@@ -7,7 +7,6 @@ library(spData)
 library(spDataLarge)
 library(tmap)    # for static and interactive maps
 library(leaflet) # for interactive maps
-library(ggplot2) # tidyverse data visualization package
 library(GISTools)
 library(grid)
 
@@ -18,6 +17,7 @@ MuncData <-  sf::read_sf( "../data/Municipal_Boundaries.shp")%>% sf::st_make_val
 StatePark <- sf::read_sf("../data/State_Park_Locations.shp")%>% sf::st_make_valid()
 StreamData <-  sf::read_sf ("../data/Streams_303_d_.shp")%>% sf::st_make_valid()
 Dem <- raster("../data/lc_dem.tif") 
+
 
 #Task 1................................ Frankenmap
 
@@ -94,10 +94,29 @@ print(NE.map + Inset.map, vp = viewport(0.7, 0.137, width = 0.3, height = 0.3))
 GB.Dem <- raster("../data/Gb_dem.tif")
 Gb_boundry <- sf::read_sf("../data/Gilgit_new_distric_boundry.shp")%>% sf::st_make_valid() 
 River.GB <- sf::read_sf("../data/waterways.shp")%>% sf::st_make_valid() 
+GLOF.GB <- read.csv(file = '../data/GLOF_data.csv')
+
 
 #intersect GB boundary data with the river data
 Gb.rivers <- sf::st_intersection(Gb_boundry, River.GB)
 Gb.rivers
+
+glof.gb <- merge(Gb_boundry, GLOF.GB, by.x= "D_NAME", by.y = "D_NAME", na.rm= T)
+
+Gbglof <- sf::st_intersection(Gb_boundry, glof.gb)
+Gbglof
+
+#creating map for GLOF region 
+Glf.map <- tm_shape(Gbglof)+
+  tm_fill("GLOF_Region",legend.show = F, alpha = 0.9, lwd = 1.7, col = "skyblue") + 
+  tm_text("DISTRICT")+
+  tm_shape(Gb_boundry) + tm_borders(col = "black", lwd = 1.5, lty = "solid")+
+  tm_layout(main.title="GLOF regions in Gilgit Baltistan, Pakistan", title.size = 1.8) +
+  tm_shape(Gb.rivers) +
+  tm_lines(col = "blue",lwd = 1.8,lty = "solid",legend.col.show=TRUE)+
+  tm_layout(legend.position =c("right","center"))
+Glf.map
+
 
 #creating map for GB region 
 Gb.map <- tm_shape(Gb_boundry)+
@@ -111,11 +130,16 @@ Gb.map
 
 #plotting the DEM for the GB region
 glt.map <- tm_shape(GB.Dem) + 
-  tm_raster(alpha = 0.28, palette = colorRampPalette(c("darkolivegreen4","yellow", "brown"))(12),
-            legend.show = F) + tm_compass(type = "8star", position = c("right", "top"), size = 2) +
-  tm_layout(main.title="  Rivers in Gilgit Baltistan, Pakistan", title.size = 1.1) 
+  tm_raster(alpha = 0.2, palette = colorRampPalette(c("darkolivegreen4","yellow", "brown"))(12),
+            legend.show = F) + tm_compass(type = "8star", position = c("right", "top"), size = 2) 
+tm_layout(main.title="  Rivers in Gilgit Baltistan, Pakistan", title.size = 1.1)
 glt.map
 
 #Adding vector and raster data (GB boundary map and DEM map)
-Gb.map + glt.map
+Gb.map +  glt.map 
+
+#Adding GLOF data and raster data (GB boundary map and DEM map)
+Glf.map + glt.map 
+
+
 
